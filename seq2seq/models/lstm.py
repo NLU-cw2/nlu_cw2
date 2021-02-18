@@ -140,6 +140,13 @@ class LSTMEncoder(Seq2SeqEncoder):
         ___QUESTION-1-DESCRIBE-A-START___
         Describe what happens when self.bidirectional is set to True. 
         What is the difference between final_hidden_states and final_cell_states?
+        
+        When bidirectional is True, the LSTM is constructed with two LSTM submodules.
+        These submodules have the same size.
+        One of them takes the original input and the other one takes the input in the reversed order.
+        The outputs from these two submodules will be concatenated together for further prediction.
+    
+        cell_states is responsible for tracing history, while hidden_states is responsible for generating output.
         '''
         if self.bidirectional:
             def combine_directions(outs):
@@ -179,6 +186,10 @@ class AttentionLayer(nn.Module):
         '''
         ___QUESTION-1-DESCRIBE-B-START___
         Describe how the attention context vector is calculated. Why do we need to apply a mask to the attention scores?
+        
+        attention context vector is calculated as the summation of encoder_out using the softmax of score as weights.
+     
+        the model should not pay attention to the outputs from the padded positions.
         '''
         if src_mask is not None:
             src_mask = src_mask.unsqueeze(dim=1)
@@ -199,6 +210,12 @@ class AttentionLayer(nn.Module):
         ___QUESTION-1-DESCRIBE-C-START___
         How are attention scores calculated? What role does matrix multiplication (i.e. torch.bmm()) play 
         in aligning encoder and decoder representations?
+        
+        
+        firstly, calculate the linear transformation of encoder_out as Q
+        secondly, calculate the inner product of Q and tgt_input.
+        
+        torch.bmm() is used as a similarity function.
         '''
         projected_encoder_out = self.src_projection(encoder_out).transpose(2, 1)
         attn_scores = torch.bmm(tgt_input.unsqueeze(dim=1), projected_encoder_out)
@@ -276,6 +293,11 @@ class LSTMDecoder(Seq2SeqDecoder):
         '''
         ___QUESTION-1-DESCRIBE-D-START___
         Describe how the decoder state is initialized. When is cached_state == None? What role does input_feed play?
+        
+        When is cached_state == None,
+        tgt_hidden_states, tgt_cell_states, input_feed are all initialized with 0-vectors.
+        
+        input_feed represents the output from previous time step
         '''
         cached_state = utils.get_incremental_state(self, incremental_state, 'cached_state')
         if cached_state is not None:
@@ -310,6 +332,16 @@ class LSTMDecoder(Seq2SeqDecoder):
             ___QUESTION-1-DESCRIBE-E-START___
             How is attention integrated into the decoder? Why is the attention function given the previous 
             target state as one of its inputs? What is the purpose of the dropout layer?
+            
+            
+            use the output of decoder as Q;
+            use the output of encoder as V;
+            use the linear transformation of V as K;
+            
+            attention function uses the previous target state as Query.
+            
+            dropout is used to ease overfitting? 
+            reduce the number of necessary state.
             '''
             if self.attention is None:
                 input_feed = tgt_hidden_states[-1]
