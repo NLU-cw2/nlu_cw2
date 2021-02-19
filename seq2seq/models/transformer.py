@@ -19,6 +19,7 @@ class TransformerModel(Seq2SeqModel):
     """
     Transformer Model Class. Inherits from Seq2SeqModel and calls TransformerEncoder and TransformerDecoder submodels.
     """
+
     def __init__(self,
                  args,
                  encoder,
@@ -97,6 +98,9 @@ class TransformerEncoder(Seq2SeqEncoder):
         ___QUESTION-6-DESCRIBE-A-START___
         What is the purpose of the positional embeddings in the encoder and decoder? Why can't we use only
         the embeddings similar to for the LSTM? 
+        
+        
+        For parallel computation.
         '''
         embeddings += self.embed_positions(src_tokens)
         '''
@@ -117,15 +121,16 @@ class TransformerEncoder(Seq2SeqEncoder):
             forward_state = layer(state=forward_state, encoder_padding_mask=encoder_padding_mask)
 
         return {
-            "src_out": forward_state,   # [src_time_steps, batch_size, num_features]
-            "src_embeddings": src_embeddings,   # [batch_size, src_time_steps, num_features]
-            "src_padding_mask": encoder_padding_mask,   # [batch_size, src_time_steps]
-            "src_states": []    # List[]
+            "src_out": forward_state,  # [src_time_steps, batch_size, num_features]
+            "src_embeddings": src_embeddings,  # [batch_size, src_time_steps, num_features]
+            "src_padding_mask": encoder_padding_mask,  # [batch_size, src_time_steps]
+            "src_states": []  # List[]
         }
 
 
 class TransformerDecoder(Seq2SeqDecoder):
     """ Defines an decoder class. """
+
     def __init__(self,
                  args,
                  dictionary):
@@ -187,6 +192,11 @@ class TransformerDecoder(Seq2SeqDecoder):
             ___QUESTION-6-DESCRIBE-B-START___
             What is the purpose of self_attn_mask? Why do we need it in the decoder but not in the encoder?
             Why do we not need a mask for incremental decoding?
+            
+            when incremental_state is False,
+            we are training the model. we will input the target_tokens.
+            if we don't use attn_mask, the model will learn to pay attention to the future target,
+            which will not work during testing time.
             '''
             self_attn_mask = self.buffered_future_mask(forward_state) if incremental_state is None else None
             '''
@@ -195,8 +205,8 @@ class TransformerDecoder(Seq2SeqDecoder):
 
             forward_state, layer_attn = layer(state=forward_state,
                                               encoder_out=encoder_state,
-                                              self_attn_mask=self_attn_mask,
-                                              self_attn_padding_mask=self_attn_padding_mask,
+                                              self_attn_mask=self_attn_mask,  # todo for future mask
+                                              self_attn_padding_mask=self_attn_padding_mask,  # todo for padding mask
                                               need_attn=is_attention_layer,
                                               need_head_weights=is_attention_layer)
             inner_states.append(forward_state)
@@ -215,6 +225,12 @@ class TransformerDecoder(Seq2SeqDecoder):
             ___QUESTION-6-DESCRIBE-C-START___
             Why do we need a linear projection after the decoder layers? What is the dimensionality of forward_state
             after this line? What would the output represent if features_only=True?
+            
+            when features_only=False,
+            we need a linear projection to transform forward_state into vocab_size dimension.
+            
+            when features_only=True,
+            the the model will output a xxx-D features, represent each word.
             '''
             forward_state = self.embed_out(forward_state)
             '''

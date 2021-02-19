@@ -33,6 +33,8 @@ class TransformerEncoderLayer(nn.Module):
         What is the purpose of encoder_padding_mask? What will the output shape of `state' Tensor 
         be after multi-head attention? HINT: formulate your  answer in terms of 
         constituent variables like batch_size, embed_dim etc...
+        
+        padding_mask? mask the padding position. should not pay attention to those.
         '''
         state, _ = self.self_attn(query=state, key=state, value=state, key_padding_mask=encoder_padding_mask)
         '''
@@ -115,6 +117,12 @@ class TransformerDecoderLayer(nn.Module):
         ___QUESTION-6-DESCRIBE-E-START___
         How does encoder attention differ from self attention? What is the difference between key_padding_mask 
         and attn_mask? If you understand this difference, then why don't we need to give attn_mask here?
+        
+        encoder attention will attention to the output of encoder, while the self attention attention to decoder itself.
+        
+        key_padding_mask and attn_mask ????
+        self_attn_padding_mask and self_attn_mask ???
+        
         '''
         state, attn = self.encoder_attn(query=state,
                                         key=encoder_out,
@@ -142,6 +150,7 @@ class TransformerDecoderLayer(nn.Module):
 
 class MultiHeadAttention(nn.Module):
     """Multi-Head Attention"""
+
     def __init__(self,
                  embed_dim,
                  num_attn_heads,
@@ -192,7 +201,6 @@ class MultiHeadAttention(nn.Module):
                 key_padding_mask=None,
                 attn_mask=None,
                 need_weights=True):
-
         # Get size features
         tgt_time_steps, batch_size, embed_dim = query.size()
         assert self.embed_dim == embed_dim
@@ -203,14 +211,48 @@ class MultiHeadAttention(nn.Module):
         Note that you will have to handle edge cases for best model performance. Consider what behaviour should
         be expected if attn_mask or key_padding_mask are given?
         '''
-
         # attn is the output of MultiHead(Q,K,V) in Vaswani et al. 2017
         # attn must be size [tgt_time_steps, batch_size, embed_dim]
         # attn_weights is the combined output of h parallel heads of Attention(Q,K,V) in Vaswani et al. 2017
         # attn_weights must be size [num_heads, batch_size, tgt_time_steps, key.size(0)]
         # TODO: REPLACE THESE LINES WITH YOUR IMPLEMENTATION ------------------------ CUT
-        attn = torch.zeros(size=(tgt_time_steps, batch_size, embed_dim))
-        attn_weights = torch.zeros(size=(self.num_heads, batch_size, tgt_time_steps, -1)) if need_weights else None
+
+        # projected Q: [tgt_time_steps, batch_size, num_heads * head_embed_size]
+        # projected K,V: [key.size(0), batch_size, num_heads * head_embed_size]
+        projected_query = self.q_proj(query)
+        projected_key = self.k_proj(key)
+        projected_value = self.v_proj(value)
+
+        # split into multi-heads Q: [num_heads, tgt_time_steps, batch_size, head_embed_size]
+        # split into multi-heads K,V: [num_heads, key.size(0), batch_size, head_embed_size]
+        multi_head_query = torch.stack(projected_query.split(projected_query.size(-1) // self.num_heads, dim=-1))
+        multi_head_key = torch.stack(projected_key.split(projected_key.size(-1) // self.num_heads, dim=-1))
+        multi_head_value = torch.stack(projected_value.split(projected_value.size(-1) // self.num_heads, dim=-1))
+
+        # inner-product of Q,K: [num_heads, tgt_time_steps, batch_size, key.size(0)]
+        multi_head_attn_score = (multi_head_query.unsqueeze(-2) * multi_head_key.transpose(1, 2).unsqueeze(1)).sum(-1)
+        multi_head_attn_score /= self.head_scaling
+
+        # padding mask and future mask
+        if key_padding_mask is not None:
+            multi_head_attn_score.masked_fill_(key_padding_mask, float('-inf'))
+        if attn_mask is not None:
+            multi_head_attn_score += attn_mask.unsqueeze(1)
+
+        # softmax: [num_heads, tgt_time_steps, batch_size, key.size(0)]
+        multi_head_attn_weights = F.softmax(multi_head_attn_score, dim=-1)
+
+        # weighted sum of V: [num_heads, tgt_time_steps, batch_size, head_embed_size]
+        multi_head_attn = (multi_head_attn_weights.unsqueeze(-1) * multi_head_value.transpose(1, 2).unsqueeze(1)).sum(-2)
+
+        # concat multiple heads: [tgt_time_steps, batch_size, num_heads * head_embed_size]
+        multi_head_attn = torch.cat([head for head in multi_head_attn], dim=-1)
+
+        # linear transform: [tgt_time_steps, batch_size, embed_dim]
+        multi_head_attn = self.out_proj(multi_head_attn)
+
+        attn = multi_head_attn
+        attn_weights = multi_head_attn_weights if need_weights else None
         # TODO: --------------------------------------------------------------------- CUT
 
         '''
