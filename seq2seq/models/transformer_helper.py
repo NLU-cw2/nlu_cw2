@@ -217,42 +217,44 @@ class MultiHeadAttention(nn.Module):
         # attn_weights must be size [num_heads, batch_size, tgt_time_steps, key.size(0)]
         # TODO: REPLACE THESE LINES WITH YOUR IMPLEMENTATION ------------------------ CUT
 
-        # projected Q: [tgt_time_steps, batch_size, num_heads * head_embed_size]
-        # projected K,V: [key.size(0), batch_size, num_heads * head_embed_size]
-        projected_query = self.q_proj(query)
-        projected_key = self.k_proj(key)
-        projected_value = self.v_proj(value)
+        # projected Q: [batch_size, tgt_time_steps, num_heads * head_embed_size]
+        # projected K,V: [batch_size, key.size(0), num_heads * head_embed_size]
+        Q = self.q_proj(query).transpose(0, 1)
+        K = self.k_proj(key).transpose(0, 1)
+        V = self.v_proj(value).transpose(0, 1)
 
-        # split into multi-heads Q: [num_heads, tgt_time_steps, batch_size, head_embed_size]
-        # split into multi-heads K,V: [num_heads, key.size(0), batch_size, head_embed_size]
-        multi_head_query = torch.stack(projected_query.split(projected_query.size(-1) // self.num_heads, dim=-1))
-        multi_head_key = torch.stack(projected_key.split(projected_key.size(-1) // self.num_heads, dim=-1))
-        multi_head_value = torch.stack(projected_value.split(projected_value.size(-1) // self.num_heads, dim=-1))
+        # split into multi-heads Q: [num_heads, batch_size, tgt_time_steps, head_embed_size]
+        # split into multi-heads K,V: [num_heads, batch_size, key.size(0), head_embed_size]
+        Qs = torch.stack(Q.split(Q.size(-1) // self.num_heads, dim=-1))
+        Ks = torch.stack(K.split(K.size(-1) // self.num_heads, dim=-1))
+        Vs = torch.stack(V.split(V.size(-1) // self.num_heads, dim=-1))
 
-        # inner-product of Q,K: [num_heads, tgt_time_steps, batch_size, key.size(0)]
-        multi_head_attn_score = (multi_head_query.unsqueeze(-2) * multi_head_key.transpose(1, 2).unsqueeze(1)).sum(-1)
-        multi_head_attn_score /= self.head_scaling
+        # inner-product of Q,K: [num_heads, batch_size, tgt_time_steps, key.size(0)]
+        attn_score = Qs @ Ks.transpose(2, 3)
+        attn_score /= self.head_scaling
 
         # padding mask and future mask
         if key_padding_mask is not None:
-            multi_head_attn_score.masked_fill_(key_padding_mask, float('-inf'))
+            attn_score.masked_fill_(key_padding_mask.unsqueeze(1), float('-inf'))
         if attn_mask is not None:
-            multi_head_attn_score += attn_mask.unsqueeze(1)
+            attn_score += attn_mask
 
-        # softmax: [num_heads, tgt_time_steps, batch_size, key.size(0)]
-        multi_head_attn_weights = F.softmax(multi_head_attn_score, dim=-1)
+        # softmax: [num_heads, batch_size, tgt_time_steps, key.size(0)]
+        attn_weights = F.softmax(attn_score, dim=-1)
 
-        # weighted sum of V: [num_heads, tgt_time_steps, batch_size, head_embed_size]
-        multi_head_attn = (multi_head_attn_weights.unsqueeze(-1) * multi_head_value.transpose(1, 2).unsqueeze(1)).sum(-2)
+        # weighted sum of V: [num_heads, batch_size, tgt_time_steps, head_embed_size]
+        attn = attn_weights @ Vs
 
-        # concat multiple heads: [tgt_time_steps, batch_size, num_heads * head_embed_size]
-        multi_head_attn = torch.cat([head for head in multi_head_attn], dim=-1)
+        # concat multiple heads: [batch_size, tgt_time_steps, num_heads * head_embed_size]
+        attn = torch.cat([head for head in attn], dim=-1)
 
-        # linear transform: [tgt_time_steps, batch_size, embed_dim]
-        multi_head_attn = self.out_proj(multi_head_attn)
+        # linear transform: [batch_size, tgt_time_steps, embed_dim]
+        attn = self.out_proj(attn)
 
-        attn = multi_head_attn
-        attn_weights = multi_head_attn_weights if need_weights else None
+        # [tgt_time_steps, batch_size, embed_dim]
+        attn = attn.transpose(0, 1)
+        # [num_heads, tgt_time_steps, batch_size, key.size(0)]
+        attn_weights = attn_weights.transpose(1, 2) if need_weights else None
         # TODO: --------------------------------------------------------------------- CUT
 
         '''
