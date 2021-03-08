@@ -216,7 +216,6 @@ class MultiHeadAttention(nn.Module):
         # attn_weights is the combined output of h parallel heads of Attention(Q,K,V) in Vaswani et al. 2017
         # attn_weights must be size [num_heads, batch_size, tgt_time_steps, key.size(0)]
         # TODO: REPLACE THESE LINES WITH YOUR IMPLEMENTATION ------------------------ CUT
-
         # projected Q: [batch_size, tgt_time_steps, num_heads * head_embed_size]
         # projected K,V: [batch_size, key.size(0), num_heads * head_embed_size]
         Q = self.q_proj(query).transpose(0, 1)
@@ -251,10 +250,8 @@ class MultiHeadAttention(nn.Module):
         # linear transform: [batch_size, tgt_time_steps, embed_dim]
         attn = self.out_proj(attn)
 
-        # [tgt_time_steps, batch_size, embed_dim]
-        attn = attn.transpose(0, 1)
-        # [num_heads, tgt_time_steps, batch_size, key.size(0)]
-        attn_weights = attn_weights.transpose(1, 2) if need_weights else None
+        attn = attn.transpose(0, 1)  # [tgt_time_steps, batch_size, embed_dim]
+        attn_weights = attn_weights if need_weights else None
         # TODO: --------------------------------------------------------------------- CUT
 
         '''
