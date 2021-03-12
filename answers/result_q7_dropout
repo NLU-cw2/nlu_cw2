@@ -1,0 +1,58 @@
+Commencing training!
+COMMAND: train.py --save-dir /tmp/nlu_cw2/results/q7_dropout --log-file /tmp/nlu_cw2/results/q7_dropout/log.out --data /tmp/nlu_cw2/europarl_prepared --arch transformer
+Arguments: {'data': '/tmp/nlu_cw2/europarl_prepared', 'source_lang': 'de', 'target_lang': 'en', 'max_tokens': None, 'batch_size': 10, 'train_on_tiny': False, 'arch': 'transformer', 'max_epoch': 100, 'clip_norm': 4.0, 'lr': 0.0003, 'patience': 10, 'log_file': '/tmp/nlu_cw2/results/q7_dropout/log.out', 'save_dir': '/tmp/nlu_cw2/results/q7_dropout', 'restore_file': 'checkpoint_last.pt', 'save_interval': 1, 'no_save': False, 'epoch_checkpoints': False, 'encoder_embed_dim': 128, 'encoder_ffn_embed_dim': 512, 'encoder_layers': 2, 'encoder_attention_heads': 2, 'decoder_embed_dim': 128, 'decoder_ffn_embed_dim': 512, 'decoder_layers': 2, 'decoder_attention_heads': 2, 'dropout': 0.1, 'attention_dropout': 0.2, 'activation_dropout': 0.1, 'no_scale_embedding': False, 'device_id': 0}
+Loaded a source dictionary (de) with 5047 words
+Loaded a target dictionary (en) with 4420 words
+Built a model with 2707652 parameters
+Epoch 000: loss 5.126 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 27.86 | clip 1
+Epoch 000: valid_loss 4.4 | num_tokens 13.8 | batch_size 500 | valid_perplexity 81.1
+Epoch 001: loss 4.265 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 30.05 | clip 1
+Epoch 001: valid_loss 4.01 | num_tokens 13.8 | batch_size 500 | valid_perplexity 55.1
+Epoch 002: loss 3.878 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 32.11 | clip 1
+Epoch 002: valid_loss 3.79 | num_tokens 13.8 | batch_size 500 | valid_perplexity 44.5
+Epoch 003: loss 3.585 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 34.06 | clip 1
+Epoch 003: valid_loss 3.66 | num_tokens 13.8 | batch_size 500 | valid_perplexity 38.8
+Epoch 004: loss 3.348 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 35.74 | clip 1
+Epoch 004: valid_loss 3.57 | num_tokens 13.8 | batch_size 500 | valid_perplexity 35.5
+Epoch 005: loss 3.142 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 37.35 | clip 1
+Epoch 005: valid_loss 3.5 | num_tokens 13.8 | batch_size 500 | valid_perplexity 33.2
+Epoch 006: loss 2.95 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 38.79 | clip 1
+Epoch 006: valid_loss 3.45 | num_tokens 13.8 | batch_size 500 | valid_perplexity 31.4
+Epoch 007: loss 2.776 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 40.21 | clip 1
+Epoch 007: valid_loss 3.42 | num_tokens 13.8 | batch_size 500 | valid_perplexity 30.6
+Epoch 008: loss 2.617 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 41.67 | clip 1
+Epoch 008: valid_loss 3.41 | num_tokens 13.8 | batch_size 500 | valid_perplexity 30.2
+Epoch 009: loss 2.47 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 42.95 | clip 1
+Epoch 009: valid_loss 3.4 | num_tokens 13.8 | batch_size 500 | valid_perplexity 29.9
+Epoch 010: loss 2.334 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 44.05 | clip 1
+Epoch 010: valid_loss 3.4 | num_tokens 13.8 | batch_size 500 | valid_perplexity 29.9
+Epoch 011: loss 2.204 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 45.23 | clip 1
+Epoch 011: valid_loss 3.39 | num_tokens 13.8 | batch_size 500 | valid_perplexity 29.8
+Epoch 012: loss 2.087 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 46.08 | clip 1
+Epoch 012: valid_loss 3.42 | num_tokens 13.8 | batch_size 500 | valid_perplexity 30.4
+Epoch 013: loss 1.976 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 47.05 | clip 1
+Epoch 013: valid_loss 3.46 | num_tokens 13.8 | batch_size 500 | valid_perplexity 31.7
+Epoch 014: loss 1.873 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 47.75 | clip 1
+Epoch 014: valid_loss 3.48 | num_tokens 13.8 | batch_size 500 | valid_perplexity 32.4
+Epoch 015: loss 1.778 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 48.43 | clip 1
+Epoch 015: valid_loss 3.52 | num_tokens 13.8 | batch_size 500 | valid_perplexity 33.7
+Epoch 016: loss 1.693 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 49.13 | clip 1
+Epoch 016: valid_loss 3.55 | num_tokens 13.8 | batch_size 500 | valid_perplexity 34.7
+Epoch 017: loss 1.613 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 49.81 | clip 1
+Epoch 017: valid_loss 3.58 | num_tokens 13.8 | batch_size 500 | valid_perplexity 36
+Epoch 018: loss 1.54 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 50.2 | clip 1
+Epoch 018: valid_loss 3.63 | num_tokens 13.8 | batch_size 500 | valid_perplexity 37.6
+Epoch 019: loss 1.472 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 50.73 | clip 1
+Epoch 019: valid_loss 3.67 | num_tokens 13.8 | batch_size 500 | valid_perplexity 39.3
+Epoch 020: loss 1.409 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 51.03 | clip 1
+Epoch 020: valid_loss 3.72 | num_tokens 13.8 | batch_size 500 | valid_perplexity 41.1
+Epoch 021: loss 1.354 | lr 0.0003 | num_tokens 13.4 | batch_size 10 | grad_norm 51.43 | clip 0.999
+Epoch 021: valid_loss 3.75 | num_tokens 13.8 | batch_size 500 | valid_perplexity 42.3
+No validation set improvements observed for 10 epochs. Early stop!
+[2021-03-11 18:44:09] COMMAND: translate.py --checkpoint-path /tmp/nlu_cw2/results/q7_dropout/checkpoint_best.pt --output /tmp/nlu_cw2/results/q7_dropout/model_translations.txt
+[2021-03-11 18:44:09] Arguments: {'cuda': False, 'seed': 42, 'data': '/tmp/nlu_cw2/europarl_prepared', 'checkpoint_path': '/tmp/nlu_cw2/results/q7_dropout/checkpoint_best.pt', 'batch_size': 10, 'output': '/tmp/nlu_cw2/results/q7_dropout/model_translations.txt', 'max_len': 25, 'source_lang': 'de', 'target_lang': 'en', 'max_tokens': None, 'train_on_tiny': False, 'arch': 'transformer', 'max_epoch': 100, 'clip_norm': 4.0, 'lr': 0.0003, 'patience': 10, 'log_file': '/tmp/nlu_cw2/results/q7_dropout/log.out', 'save_dir': '/tmp/nlu_cw2/results/q7_dropout', 'restore_file': 'checkpoint_last.pt', 'save_interval': 1, 'no_save': False, 'epoch_checkpoints': False, 'encoder_embed_dim': 128, 'encoder_ffn_embed_dim': 512, 'encoder_layers': 2, 'encoder_attention_heads': 2, 'decoder_embed_dim': 128, 'decoder_ffn_embed_dim': 512, 'decoder_layers': 2, 'decoder_attention_heads': 2, 'dropout': 0.1, 'attention_dropout': 0.2, 'activation_dropout': 0.1, 'no_scale_embedding': False, 'device_id': 0, 'max_src_positions': 512, 'max_tgt_positions': 512}
+[2021-03-11 18:44:09] Loaded a source dictionary (de) with 5047 words
+[2021-03-11 18:44:09] Loaded a target dictionary (en) with 4420 words
+[2021-03-11 18:44:10] Loaded a model from checkpoint /tmp/nlu_cw2/results/q7_dropout/checkpoint_best.pt
+[2021-03-11 18:44:19] Output 500 translations to /tmp/nlu_cw2/results/q7_dropout/model_translations.txt
+BLEU = 11.70, 42.6/16.2/7.6/3.8 (BP=0.982, ratio=0.983, hyp_len=6185, ref_len=6295)
