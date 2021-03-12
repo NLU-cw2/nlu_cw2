@@ -33,8 +33,14 @@ class TransformerEncoderLayer(nn.Module):
         What is the purpose of encoder_padding_mask? What will the output shape of `state' Tensor 
         be after multi-head attention? HINT: formulate your  answer in terms of 
         constituent variables like batch_size, embed_dim etc...
-        
-        padding_mask? mask the padding position. should not pay attention to those.
+
+        encoder_padding_mask is used to mask the attention scores in the locations where the elements 
+        of source input are padded with zero. As the input consists of packed sequences of different 
+        lengths, they are padded with 0s to achieve the same length. After applying the mask to the scores,
+        the original locations are now replaced with large negative values, which will be ignored by 
+        softmax function.
+
+        The output shape of 'state' tensor after multi-head attention have the size [src_time_steps, batch_size, embed_dim]
         '''
         state, _ = self.self_attn(query=state, key=state, value=state, key_padding_mask=encoder_padding_mask)
         '''
@@ -117,12 +123,17 @@ class TransformerDecoderLayer(nn.Module):
         ___QUESTION-6-DESCRIBE-E-START___
         How does encoder attention differ from self attention? What is the difference between key_padding_mask 
         and attn_mask? If you understand this difference, then why don't we need to give attn_mask here?
-        
-        encoder attention will attention to the output of encoder, while the self attention attention to decoder itself.
-        
-        key_padding_mask and attn_mask ????
-        self_attn_padding_mask and self_attn_mask ???
-        
+
+        In Transformer decoder, self attention feed three copies of decoder inputs (embedding + positional encoding) to 
+        three different fully connected layers to get query, key, and value, while encoder attention uses the output 
+        from self attention as query, and the encoder output as key and value.
+
+        key_padding_mask is used to mask the attention scores in the locations where the elements of source input are 
+        padded with zero, while attn_mask forces the neural network to ignore the upcoming decoder input (the target input), 
+        preventing copying from them.
+
+        We don't use attn_mask here because encoder attention uses encoder outputs as keys and values. All of these keys 
+        and values should be taken into account during decoding. 
         '''
         state, attn = self.encoder_attn(query=state,
                                         key=encoder_out,
@@ -224,9 +235,9 @@ class MultiHeadAttention(nn.Module):
 
         # split into multi-heads Q: [num_heads, batch_size, tgt_time_steps, head_embed_size]
         # split into multi-heads K,V: [num_heads, batch_size, key.size(0), head_embed_size]
-        Qs = torch.stack(Q.split(Q.size(-1) // self.num_heads, dim=-1))
-        Ks = torch.stack(K.split(K.size(-1) // self.num_heads, dim=-1))
-        Vs = torch.stack(V.split(V.size(-1) // self.num_heads, dim=-1))
+        Qs = torch.stack(Q.split(self.head_embed_size, dim=-1))
+        Ks = torch.stack(K.split(self.head_embed_size, dim=-1))
+        Vs = torch.stack(V.split(self.head_embed_size, dim=-1))
 
         # inner-product of Q,K: [num_heads, batch_size, tgt_time_steps, key.size(0)]
         attn_score = Qs @ Ks.transpose(2, 3)
@@ -240,6 +251,9 @@ class MultiHeadAttention(nn.Module):
 
         # softmax: [num_heads, batch_size, tgt_time_steps, key.size(0)]
         attn_weights = F.softmax(attn_score, dim=-1)
+
+        # dropout
+        attn_weights = F.dropout(attn_weights, self.attention_dropout, self.training)
 
         # weighted sum of V: [num_heads, batch_size, tgt_time_steps, head_embed_size]
         attn = attn_weights @ Vs

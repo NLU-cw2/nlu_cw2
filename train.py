@@ -120,8 +120,13 @@ def main(args):
             '''
             ___QUESTION-1-DESCRIBE-F-START___
             Describe what the following lines of code do.
-            
-            feed forward and back propagation.
+
+            In the following lines, the trained model is firstly employed to translate the sampled source tokens, 
+            and then compute the cross-entropy loss by comparing the translated results with the ground truths. 
+            Thirdly, the gradients of the loss at current stage are computed by back propagation and clipped with 
+            the maximum of clip_norm. Finally, the parameters of MT model is updated according to the gradients 
+            before the gradients are cleared. 
+
             '''
             output, _ = model(sample['src_tokens'], sample['src_lengths'], sample['tgt_inputs'])
 

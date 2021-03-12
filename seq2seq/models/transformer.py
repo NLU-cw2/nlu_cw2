@@ -98,9 +98,17 @@ class TransformerEncoder(Seq2SeqEncoder):
         ___QUESTION-6-DESCRIBE-A-START___
         What is the purpose of the positional embeddings in the encoder and decoder? Why can't we use only
         the embeddings similar to for the LSTM? 
-        
-        
-        For parallel computation.
+
+        Positional embeddings provide the input of the encoder and decoder with positional information. 
+        After concatenating with word embedding, each resulted vector is unique to represent both semantic 
+        information and a token’s position in the sequence.
+
+        Unlike in a LSTM, there is no way to represent word order in transformer as the original input is 
+        position invariant, having no sequence information without positional embeddings. The attention 
+        mechanism will produce the same output sate for the sequences with different word orders. Therefore, 
+        positional embeddings are required as part of input so that a sentence like “Will, will Lisa bequeath 
+        Jack her will?" will have three unique representations for the same word “will” and each is contextual 
+        on adjacent words and word order. 
         '''
         embeddings += self.embed_positions(src_tokens)
         '''
@@ -192,11 +200,11 @@ class TransformerDecoder(Seq2SeqDecoder):
             ___QUESTION-6-DESCRIBE-B-START___
             What is the purpose of self_attn_mask? Why do we need it in the decoder but not in the encoder?
             Why do we not need a mask for incremental decoding?
-            
-            when incremental_state is False,
-            we are training the model. we will input the target_tokens.
-            if we don't use attn_mask, the model will learn to pay attention to the future target,
-            which will not work during testing time.
+
+            The purpose of self_attn_mask is to prevent the model just learn to look forward and copy the 
+            upcoming input. We do not need this mask for encoder because we allow and want the model to make 
+            prediction based on the whole context of the inputs. At each time step of incremental decoding, 
+            we only have previous generated words, which the model are allowed to use to make further prediction.
             '''
             self_attn_mask = self.buffered_future_mask(forward_state) if incremental_state is None else None
             '''
@@ -205,8 +213,8 @@ class TransformerDecoder(Seq2SeqDecoder):
 
             forward_state, layer_attn = layer(state=forward_state,
                                               encoder_out=encoder_state,
-                                              self_attn_mask=self_attn_mask,  # todo for future mask
-                                              self_attn_padding_mask=self_attn_padding_mask,  # todo for padding mask
+                                              self_attn_mask=self_attn_mask,
+                                              self_attn_padding_mask=self_attn_padding_mask,
                                               need_attn=is_attention_layer,
                                               need_head_weights=is_attention_layer)
             inner_states.append(forward_state)
@@ -225,12 +233,10 @@ class TransformerDecoder(Seq2SeqDecoder):
             ___QUESTION-6-DESCRIBE-C-START___
             Why do we need a linear projection after the decoder layers? What is the dimensionality of forward_state
             after this line? What would the output represent if features_only=True?
-            
-            when features_only=False,
-            we need a linear projection to transform forward_state into vocab_size dimension.
-            
-            when features_only=True,
-            the the model will output a xxx-D features, represent each word.
+
+            Linear projection transforms the decoder output to probability distribution over word the vocabulary to 
+            compute the score of each word for prediction. The dimensionality of forward_state after that line is 
+            the same as vocabulary size. If features_only=True, the output represents the features of each output word.
             '''
             forward_state = self.embed_out(forward_state)
             '''
